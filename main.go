@@ -1,19 +1,13 @@
 package main
 
 import (
+	"bishe/backend/models"
 	"github.com/astaxie/beego"
+	_ "bishe/backend/routers"
 )
 
-type MainController struct {
-	beego.Controller
-}
-
-func (this *MainController) Get() {
-	this.Ctx.WriteString("hello world")
-}
-
 func main() {
-	beego.Router("/", &MainController{})
+	beego.BConfig.WebConfig.AutoRender = false
+	models.InitDB()
 	beego.Run()
 }
-
