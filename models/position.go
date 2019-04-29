@@ -15,7 +15,7 @@ const (
 	COMPANY_SQL = `SELECT company_name, COUNT(*) AS num FROM position_info WHERE position LIKE ? GROUP BY company_name ORDER BY num DESC`
 	WORKYEAR_SQL = `SELECT COUNT(*) AS num FROM position_info WHERE position LIKE ? AND level = ? GROUP BY workyear`
 	EDUCAITON_SQL = `SELECT education, COUNT(*) AS num FROM position_info WHERE position LIKE ? GROUP BY education`
-	LANGUAGE_SQL = `SELECT COUNT(*) AS num FROM position_info WHERE position LIKE ?`
+	LANGUAGE_SQL = `SELECT COUNT(*) AS num FROM position_info WHERE position LIKE ? ORDER BY num DESC`
 )
 
 var (
