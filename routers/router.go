@@ -17,4 +17,10 @@ func init() {
 	beego.Router("/api/company/:language", &controllers.PositionController{}, "get:GetCompany")
 	beego.Router("/api/workyear/:language", &controllers.PositionController{}, "get:GetWorkYear")
 	beego.Router("/api/education/:language", &controllers.PositionController{}, "get:GetEducation")
+	// GetCityCompany
+	beego.Router("/api/citycompany/:language", &controllers.PositionController{}, "get:GetCityCompany")
+	// GetWorkYearSalary
+	beego.Router("/api/workyearsalary/:language", &controllers.PositionController{}, "get:GetWorkYearSalary")
+	// GetFinanceSalary
+	beego.Router("/api/financesalary/:language", &controllers.PositionController{}, "get:GetFinanceSalary")
 }

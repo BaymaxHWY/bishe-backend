@@ -16,6 +16,9 @@ const (
 	WORKYEAR_SQL = `SELECT COUNT(*) AS num FROM position_info WHERE position LIKE ? AND level = ? GROUP BY workyear`
 	EDUCAITON_SQL = `SELECT education, COUNT(*) AS num FROM position_info WHERE position LIKE ? GROUP BY education`
 	LANGUAGE_SQL = `SELECT COUNT(*) AS num FROM position_info WHERE position LIKE ? ORDER BY num DESC`
+	CITYCOMPANY_SQL = `SELECT city, COUNT(*) AS num, COUNT(DISTINCT company_name) AS company_num FROM position_info WHERE position LIKE ? GROUP BY city`
+	WORKYEARSALARY_SQL = `SELECT workyear, COUNT(*) AS num FROM position_info WHERE position LIKE ? AND salary_low >= ? AND salary_high <= ? GROUP BY workyear ORDER BY level`
+	FINANCESALARY_SQL = `SELECT finance_stage, COUNT(*) AS num FROM position_info WHERE position LIKE ? AND salary_low >= ? AND salary_high <= ? GROUP BY finance_stage ORDER BY finance_stage`
 )
 
 var (
@@ -147,6 +150,132 @@ func (p *PositionModel) GetLanguage() *conf.Response {
 		row.Scan(&data.Num)
 		data.Name = v
 		res.Data = append(res.Data, data)
+	}
+	res.Code = 200
+	res.Msg = "success"
+	return res
+}
+
+// SELECT city, COUNT(*) AS num, COUNT(DISTINCT company_name) AS company_num FROM `position_info` WHERE position LIKE '%node%' GROUP BY city
+
+func (p *PositionModel) GetCityCompany(language string) *conf.Response {
+	res := &conf.Response{}
+	row, err := db.Query(CITYCOMPANY_SQL, "%" + language + "%")
+	if err != nil {
+		res.Code = 403
+		res.Msg = "query error, " + err.Error()
+		return res
+	}
+	for row.Next() {
+		data := conf.NameTo2Num{}
+		row.Scan(&data.Name, &data.Num1, &data.Num2) // name 城市, num1 这个城市招聘数, num2 这个城市正在招聘的公司数
+		res.Data = append(res.Data, data)
+	}
+	res.Code = 200
+	res.Msg = "success"
+	return res
+}
+
+// SELECT workyear, COUNT(*) AS num FROM `position_info` WHERE position LIKE '%java%' AND salary_low >= 6000 AND salary_high <= 10000 GROUP BY workyear ORDER BY level
+func (p *PositionModel) GetWorkYearSalary(language string) *conf.Response {
+	res := &conf.Response{}
+	workyear := []string{"经验不限", "应届生", "1年以内", "1-3年", "3-5年", "5-10年", "10年以上"}
+	low := 1000
+	high := 10000
+	// 5-10k
+	for ; low <= 21000; low += 10000 {
+		var dataList conf.DataList
+		dataList.Name = fmt.Sprintf("%dk-%dk", low/1000, high/1000)
+		if low == 21000 {
+			high = low * 10
+			dataList.Name = "20k以上"
+		}
+		row, err := db.Query(WORKYEARSALARY_SQL, "%" + language + "%", low, high)
+		if err != nil {
+			res.Code = 403
+			res.Msg = "query error, " + err.Error()
+			return res
+		}
+		for row.Next() {
+			data := conf.NameToNum{}
+			row.Scan(&data.Name, &data.Num) // name 工作年限要求, num 该工资区间的招聘数量
+			dataList.Data = append(dataList.Data, data)
+		} // "经验不限", "应届生", "1年以内", "1-3年", "3-5年", "5-10年", "10年以上"
+		var D []conf.NameToNum
+		i := 0
+		for _, v := range workyear {
+			var n int
+			if len(dataList.Data) - 1 >= i {
+				n = dataList.Data[i].Num
+				if dataList.Data[i].Name != v {
+					n = 0
+					i--
+				}
+				i++
+			} else {
+				n = 0
+			}
+			D = append(D, conf.NameToNum{
+				Name: v,
+				Num: n,
+			})
+		}
+		dataList.Data = D
+		res.Data = append(res.Data, dataList)
+		high += 10000
+	}
+	res.Code = 200
+	res.Msg = "success"
+	return res
+}
+
+// SELECT workyear, COUNT(*) AS num FROM `position_info` WHERE position LIKE '%java%' AND salary_low >= 6000 AND salary_high <= 10000 GROUP BY workyear ORDER BY level
+func (p *PositionModel) GetFinanceSalary(language string) *conf.Response {
+	res := &conf.Response{}
+	finance := []string{"A轮", "B轮", "C轮", "D轮及以上", "不需要融资", "天使轮", "已上市", "未融资" }
+	low := 1000
+	high := 10000
+	// 5-10k
+	for ; low <= 21000; low += 10000 {
+		var dataList conf.DataList
+		dataList.Name = fmt.Sprintf("%dk-%dk", low/1000, high/1000)
+		if low == 21000 {
+			high = low * 10
+			dataList.Name = "20k以上"
+		}
+		row, err := db.Query(FINANCESALARY_SQL, "%" + language + "%", low, high)
+		if err != nil {
+			res.Code = 403
+			res.Msg = "query error, " + err.Error()
+			return res
+		}
+		for row.Next() {
+			data := conf.NameToNum{}
+			row.Scan(&data.Name, &data.Num) // name 融资阶段, num 该工资区间的招聘数量
+			dataList.Data = append(dataList.Data, data)
+		}
+		var D []conf.NameToNum
+		i := 0
+		for _, v := range finance {
+			var n int
+			if len(dataList.Data) - 1 >= i {
+				n = dataList.Data[i].Num
+				if dataList.Data[i].Name != v {
+					n = 0
+					i--
+				}
+				i++
+			} else {
+				n = 0
+			}
+			D = append(D, conf.NameToNum{
+				Name: v,
+				Num: n,
+			})
+		}
+		dataList.Data = D
+		res.Data = append(res.Data, dataList)
+		high += 10000
 	}
 	res.Code = 200
 	res.Msg = "success"

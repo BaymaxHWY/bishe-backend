@@ -11,3 +11,14 @@ type NameToNum struct {
 	Num int
 }
 
+type DataList struct {
+	Name string
+	Data []NameToNum
+}
+
+type NameTo2Num struct {
+	Name string
+	Num1 int
+	Num2 int
+}
+

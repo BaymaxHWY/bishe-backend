@@ -61,3 +61,24 @@ func (p *PositionController) GetLanguage() {
 	p.Data["json"] = &res
 	p.ServeJSON()
 }
+
+func (p *PositionController) GetCityCompany() {
+	positionModel := models.PositionModel{}
+	res := positionModel.GetCityCompany(fmt.Sprintf("%v", p.Data["language"]))
+	p.Data["json"] = &res
+	p.ServeJSON()
+}
+
+func (p *PositionController) GetWorkYearSalary() {
+	positionModel := models.PositionModel{}
+	res := positionModel.GetWorkYearSalary(fmt.Sprintf("%v", p.Data["language"]))
+	p.Data["json"] = &res
+	p.ServeJSON()
+}
+
+func (p *PositionController) GetFinanceSalary() {
+	positionModel := models.PositionModel{}
+	res := positionModel.GetFinanceSalary(fmt.Sprintf("%v", p.Data["language"]))
+	p.Data["json"] = &res
+	p.ServeJSON()
+}
